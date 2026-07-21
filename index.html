@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wetter-App</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Live-Wetter</p>
+          <h1>Wetter in deiner Stadt</h1>
+          <p class="subtitle">Aktuelle Bedingungen und 7-Tage-Prognose auf Deutsch.</p>
+        </div>
+
+        <form id="search-form" class="search-box">
+          <input id="city-input" type="text" placeholder="Stadt eingeben" aria-label="Stadt suchen" />
+          <button type="submit">Suchen</button>
+        </form>
+      </header>
+
+      <main>
+        <section id="status" class="status" aria-live="polite"></section>
+
+        <section class="current-card">
+          <div class="current-main">
+            <p id="city-name" class="city-name">Berlin</p>
+            <p id="current-date" class="date"></p>
+            <div class="temp-row">
+              <span id="current-temp" class="temperature">--</span>
+              <span id="current-condition" class="condition">--</span>
+            </div>
+          </div>
+
+          <div class="current-details">
+            <div>
+              <span class="label">Gefühl</span>
+              <strong id="feels-like">--</strong>
+            </div>
+            <div>
+              <span class="label">Wind</span>
+              <strong id="wind-speed">--</strong>
+            </div>
+            <div>
+              <span class="label">Niederschlag</span>
+              <strong id="precipitation">--</strong>
+            </div>
+          </div>
+        </section>
+
+        <section id="forecast" class="forecast-grid"></section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
