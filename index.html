@@ -45,7 +45,10 @@
       </section>
 
       <main>
-        <section id="status" class="status" aria-live="polite"></section>
+        <section id="status" class="status" aria-live="polite">
+          <span class="live-dot"></span>
+          <span class="status-text">Live-Updates aktiv</span>
+        </section>
 
         <section class="current-card">
           <div class="current-main">
@@ -69,6 +72,35 @@
             <div>
               <span id="rain-label" class="label">Niederschlag</span>
               <strong id="precipitation">--</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-card" aria-label="Live-Statistiken">
+          <div class="stats-header">
+            <h2 id="stats-title">Statistiken live</h2>
+            <span id="stats-status" class="stats-pill">Wartet</span>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <span id="stats-search-label" class="stat-label">Suchanfragen</span>
+              <strong id="stats-search-count">0</strong>
+            </div>
+            <div class="stat-item">
+              <span id="stats-last-label" class="stat-label">Letzte Aktualisierung</span>
+              <strong id="stats-last-value">--</strong>
+            </div>
+            <div class="stat-item">
+              <span id="stats-temp-label" class="stat-label">Temperatur</span>
+              <strong id="stats-temp-value">--</strong>
+            </div>
+            <div class="stat-item">
+              <span id="stats-wind-label" class="stat-label">Wind</span>
+              <strong id="stats-wind-value">--</strong>
+            </div>
+            <div class="stat-item">
+              <span id="stats-condition-label" class="stat-label">Bedingung</span>
+              <strong id="stats-condition-value">--</strong>
             </div>
           </div>
         </section>

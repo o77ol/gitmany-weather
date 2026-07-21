@@ -18,6 +18,18 @@ const feelsLabelEl = document.getElementById("feels-label");
 const windLabelEl = document.getElementById("wind-label");
 const rainLabelEl = document.getElementById("rain-label");
 const searchButtonEl = document.querySelector(".search-box button");
+const statsTitleEl = document.getElementById("stats-title");
+const statsStatusEl = document.getElementById("stats-status");
+const statsSearchLabelEl = document.getElementById("stats-search-label");
+const statsSearchCountEl = document.getElementById("stats-search-count");
+const statsLastLabelEl = document.getElementById("stats-last-label");
+const statsLastValueEl = document.getElementById("stats-last-value");
+const statsTempLabelEl = document.getElementById("stats-temp-label");
+const statsTempValueEl = document.getElementById("stats-temp-value");
+const statsWindLabelEl = document.getElementById("stats-wind-label");
+const statsWindValueEl = document.getElementById("stats-wind-value");
+const statsConditionLabelEl = document.getElementById("stats-condition-label");
+const statsConditionValueEl = document.getElementById("stats-condition-value");
 
 const defaultCity = "München";
 const translations = {
@@ -63,6 +75,14 @@ const translations = {
       99: "Schweres Gewitter",
       default: "Wetterlage",
     },
+    statsTitle: "Statistiken live",
+    statsConnected: "Verbunden",
+    statsWaiting: "Wartet",
+    statsSearchCount: "Suchanfragen",
+    statsLastUpdate: "Letzte Aktualisierung",
+    statsTemp: "Temperatur",
+    statsWind: "Wind",
+    statsCondition: "Bedingung",
   },
   ar: {
     title: "طقس مدينتك",
@@ -106,6 +126,14 @@ const translations = {
       99: "عاصفة رعدية شديدة",
       default: "حالة الجو",
     },
+    statsTitle: "إحصائيات مباشرة",
+    statsConnected: "متصل",
+    statsWaiting: "بانتظار البيانات",
+    statsSearchCount: "عمليات البحث",
+    statsLastUpdate: "آخر تحديث",
+    statsTemp: "درجة الحرارة",
+    statsWind: "الرياح",
+    statsCondition: "الحالة",
   },
 };
 
@@ -114,6 +142,8 @@ let currentStatusMode = "idle";
 let currentErrorMessage = "";
 let currentWeatherCode = null;
 let currentDailyData = null;
+let searchCount = 0;
+let lastUpdatedTime = null;
 
 function updateLanguage() {
   const t = translations[currentLang];
@@ -154,6 +184,8 @@ function updateLanguage() {
     updateStatusText();
   }
 
+  updateStats();
+
   if (currentWeatherCode !== null) {
     renderCurrentWeather(currentWeatherCode);
   }
@@ -179,6 +211,66 @@ function updateStatusText() {
   if (currentStatusMode === "error") {
     statusEl.textContent = currentErrorMessage || t.notFound;
     return;
+  }
+}
+
+function updateStats() {
+  const t = translations[currentLang];
+
+  if (statsTitleEl) {
+    statsTitleEl.textContent = t.statsTitle;
+  }
+
+  if (statsStatusEl) {
+    statsStatusEl.textContent = currentStatusMode === "loaded" ? t.statsConnected : t.statsWaiting;
+  }
+
+  if (statsSearchLabelEl) {
+    statsSearchLabelEl.textContent = t.statsSearchCount;
+  }
+
+  if (statsSearchCountEl) {
+    statsSearchCountEl.textContent = searchCount;
+  }
+
+  if (statsLastLabelEl) {
+    statsLastLabelEl.textContent = t.statsLastUpdate;
+  }
+
+  if (statsLastValueEl) {
+    statsLastValueEl.textContent = lastUpdatedTime
+      ? lastUpdatedTime.toLocaleString(currentLang === "ar" ? "ar-EG" : "de-DE", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          day: "2-digit",
+          month: "short",
+        })
+      : t.statsWaiting;
+  }
+
+  if (statsTempLabelEl) {
+    statsTempLabelEl.textContent = t.statsTemp;
+  }
+
+  if (statsTempValueEl) {
+    statsTempValueEl.textContent = currentWeatherCode ? `${Math.round(currentWeatherCode.temperature_2m)}°C` : "--";
+  }
+
+  if (statsWindLabelEl) {
+    statsWindLabelEl.textContent = t.statsWind;
+  }
+
+  if (statsWindValueEl) {
+    statsWindValueEl.textContent = currentWeatherCode ? `${Math.round(currentWeatherCode.windspeed_10m)} km/h` : "--";
+  }
+
+  if (statsConditionLabelEl) {
+    statsConditionLabelEl.textContent = t.statsCondition;
+  }
+
+  if (statsConditionValueEl) {
+    statsConditionValueEl.textContent = currentWeatherCode ? getWeatherCodeText(currentWeatherCode.weather_code).text : "--";
   }
 }
 
@@ -243,6 +335,7 @@ function renderCurrentWeather(weatherData) {
 async function fetchWeather(city) {
   currentStatusMode = "loading";
   updateStatusText();
+  updateStats();
   setActiveChip(city);
 
   try {
@@ -272,11 +365,13 @@ async function fetchWeather(city) {
     currentDateEl.textContent = formatDate(new Date());
     currentWeatherCode = current;
     currentDailyData = daily;
+    lastUpdatedTime = new Date();
     renderCurrentWeather(current);
     renderForecast(daily);
 
     currentStatusMode = "loaded";
     updateStatusText();
+    updateStats();
   } catch (error) {
     currentErrorMessage = error.message || "Beim Laden ist ein Fehler aufgetreten.";
     currentStatusMode = "error";
@@ -316,9 +411,12 @@ form.addEventListener("submit", (event) => {
     currentStatusMode = "error";
     currentErrorMessage = translations[currentLang].empty;
     updateStatusText();
+    updateStats();
     return;
   }
 
+  searchCount += 1;
+  updateStats();
   fetchWeather(city);
 });
 
@@ -326,6 +424,8 @@ cityChips.forEach((chip) => {
   chip.addEventListener("click", () => {
     const city = chip.dataset.city;
     cityInput.value = city;
+    searchCount += 1;
+    updateStats();
     fetchWeather(city);
   });
 });
@@ -340,5 +440,12 @@ if (langBtn) {
 window.addEventListener("DOMContentLoaded", () => {
   cityInput.value = defaultCity;
   updateLanguage();
+  updateStats();
   fetchWeather(defaultCity);
 });
+
+setInterval(() => {
+  if (lastUpdatedTime) {
+    updateStats();
+  }
+}, 1000);
