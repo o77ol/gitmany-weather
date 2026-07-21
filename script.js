@@ -13,51 +13,212 @@ const cityChips = document.querySelectorAll(".city-chip");
 const langBtn = document.getElementById("lang-btn");
 const eyebrowEl = document.querySelector(".eyebrow");
 const titleEl = document.querySelector("h1");
+const subtitleEl = document.getElementById("subtitle");
+const feelsLabelEl = document.getElementById("feels-label");
+const windLabelEl = document.getElementById("wind-label");
+const rainLabelEl = document.getElementById("rain-label");
+const searchButtonEl = document.querySelector(".search-box button");
 
 const defaultCity = "München";
-let isArabic = false;
+const translations = {
+  de: {
+    title: "Wetter in deiner Stadt",
+    subtitle: "Aktuelle Bedingungen und 7-Tage-Prognose auf Deutsch.",
+    search: "Suchen",
+    placeholder: "Stadt eingeben",
+    loading: "Wetter wird geladen...",
+    loaded: "Wetterdaten erfolgreich geladen.",
+    notFound: "Ort nicht gefunden. Bitte versuche einen anderen Namen.",
+    empty: "Bitte gib eine Stadt ein.",
+    feels: "Gefühl",
+    wind: "Wind",
+    rain: "Niederschlag",
+    live: "LIVE-WETTER",
+    days: {
+      Dienstag: "Dienstag",
+      Mittwoch: "Mittwoch",
+      Donnerstag: "Donnerstag",
+      Freitag: "Freitag",
+      Samstag: "Samstag",
+      Sonntag: "Sonntag",
+    },
+    weather: {
+      0: "Klarer Himmel",
+      1: "Überwiegend klar",
+      2: "Teilweise bewölkt",
+      3: "Bewölkt",
+      45: "Nebel",
+      48: "Reifnebel",
+      51: "Leichter Nieselregen",
+      53: "Mäßiger Nieselregen",
+      55: "Dichter Nieselregen",
+      61: "Leichter Regen",
+      63: "Mäßiger Regen",
+      65: "Starker Regen",
+      71: "Leichter Schnee",
+      73: "Mäßiger Schnee",
+      75: "Starker Schnee",
+      95: "Gewitter",
+      96: "Gewitter mit Hagel",
+      99: "Schweres Gewitter",
+      default: "Wetterlage",
+    },
+  },
+  ar: {
+    title: "طقس مدينتك",
+    subtitle: "الأحوال الحالية وتوقعات 7 أيام",
+    search: "بحث",
+    placeholder: "أدخل المدينة",
+    loading: "يتم تحميل الطقس...",
+    loaded: "تم تحميل بيانات الطقس بنجاح",
+    notFound: "لم يتم العثور على المدينة. يرجى تجربة اسم آخر.",
+    empty: "يرجى إدخال مدينة.",
+    feels: "الاحساس",
+    wind: "الرياح",
+    rain: "الهطول",
+    live: "الطقس المباشر",
+    days: {
+      Dienstag: "الثلاثاء",
+      Mittwoch: "الأربعاء",
+      Donnerstag: "الخميس",
+      Freitag: "الجمعة",
+      Samstag: "السبت",
+      Sonntag: "الأحد",
+    },
+    weather: {
+      0: "سماء صافية",
+      1: "غالبًا صافي",
+      2: "غائم جزئيًا",
+      3: "غائم",
+      45: "ضباب",
+      48: "ضباب صقيعي",
+      51: "رذاذ خفيف",
+      53: "رذاذ متوسط",
+      55: "رذاذ كثيف",
+      61: "مطر خفيف",
+      63: "مطر متوسط",
+      65: "مطر شديد",
+      71: "ثلج خفيف",
+      73: "ثلج متوسط",
+      75: "ثلج شديد",
+      95: "عاصفة رعدية",
+      96: "عاصفة رعدية مع برد",
+      99: "عاصفة رعدية شديدة",
+      default: "حالة الجو",
+    },
+  },
+};
+
+let currentLang = "de";
+let currentStatusMode = "idle";
+let currentErrorMessage = "";
+let currentWeatherCode = null;
+let currentDailyData = null;
 
 function updateLanguage() {
+  const t = translations[currentLang];
+
   if (eyebrowEl) {
-    eyebrowEl.textContent = isArabic ? "الطقس المباشر" : "LIVE-WETTER";
+    eyebrowEl.textContent = t.live;
   }
 
   if (titleEl) {
-    titleEl.textContent = isArabic ? "طقس مدينتك" : "Wetter in deiner Stadt";
+    titleEl.textContent = t.title;
+  }
+
+  if (subtitleEl) {
+    subtitleEl.textContent = t.subtitle;
+  }
+
+  if (searchButtonEl) {
+    searchButtonEl.textContent = t.search;
+  }
+
+  if (cityInput) {
+    cityInput.placeholder = t.placeholder;
+  }
+
+  if (feelsLabelEl) {
+    feelsLabelEl.textContent = t.feels;
+  }
+
+  if (windLabelEl) {
+    windLabelEl.textContent = t.wind;
+  }
+
+  if (rainLabelEl) {
+    rainLabelEl.textContent = t.rain;
+  }
+
+  if (statusEl) {
+    updateStatusText();
+  }
+
+  if (currentWeatherCode !== null) {
+    renderCurrentWeather(currentWeatherCode);
+  }
+
+  if (currentDailyData) {
+    renderForecast(currentDailyData);
+  }
+}
+
+function updateStatusText() {
+  const t = translations[currentLang];
+
+  if (currentStatusMode === "loading") {
+    statusEl.textContent = t.loading;
+    return;
+  }
+
+  if (currentStatusMode === "loaded") {
+    statusEl.textContent = t.loaded;
+    return;
+  }
+
+  if (currentStatusMode === "error") {
+    statusEl.textContent = currentErrorMessage || t.notFound;
+    return;
   }
 }
 
 function formatDate(dateString) {
-  return new Date(dateString).toLocaleDateString("de-DE", {
-    weekday: "long",
+  const date = new Date(dateString);
+  const weekday = date.toLocaleDateString("de-DE", { weekday: "long" });
+  const localizedWeekday = currentLang === "ar" ? translations.ar.days[weekday] || weekday : weekday;
+  const formatter = new Intl.DateTimeFormat(currentLang === "ar" ? "ar-EG" : "de-DE", {
     day: "2-digit",
     month: "short",
   });
+
+  return `${localizedWeekday}, ${formatter.format(date)}`;
 }
 
 function getWeatherCodeText(code) {
-  const map = {
-    0: { text: "Klarer Himmel", icon: "☀️" },
-    1: { text: "Überwiegend klar", icon: "🌤️" },
-    2: { text: "Teilweise bewölkt", icon: "⛅" },
-    3: { text: "Bewölkt", icon: "☁️" },
-    45: { text: "Nebel", icon: "🌫️" },
-    48: { text: "Reifnebel", icon: "🌫️" },
-    51: { text: "Leichter Nieselregen", icon: "🌦️" },
-    53: { text: "Mäßiger Nieselregen", icon: "🌦️" },
-    55: { text: "Dichter Nieselregen", icon: "🌧️" },
-    61: { text: "Leichter Regen", icon: "🌦️" },
-    63: { text: "Mäßiger Regen", icon: "🌧️" },
-    65: { text: "Starker Regen", icon: "⛈️" },
-    71: { text: "Leichter Schnee", icon: "🌨️" },
-    73: { text: "Mäßiger Schnee", icon: "❄️" },
-    75: { text: "Starker Schnee", icon: "❄️" },
-    95: { text: "Gewitter", icon: "⛈️" },
-    96: { text: "Gewitter mit Hagel", icon: "⛈️" },
-    99: { text: "Schweres Gewitter", icon: "⛈️" },
+  const weatherMap = translations[currentLang].weather;
+  const text = weatherMap[code] || weatherMap.default;
+  const iconMap = {
+    0: "☀️",
+    1: "🌤️",
+    2: "⛅",
+    3: "☁️",
+    45: "🌫️",
+    48: "🌫️",
+    51: "🌦️",
+    53: "🌦️",
+    55: "🌧️",
+    61: "🌦️",
+    63: "🌧️",
+    65: "⛈️",
+    71: "🌨️",
+    73: "❄️",
+    75: "❄️",
+    95: "⛈️",
+    96: "⛈️",
+    99: "⛈️",
   };
 
-  return map[code] || { text: "Wetterlage", icon: "🌈" };
+  return { text, icon: iconMap[code] || "🌈" };
 }
 
 function setActiveChip(city) {
@@ -69,8 +230,19 @@ function setActiveChip(city) {
   });
 }
 
+function renderCurrentWeather(weatherData) {
+  const weatherInfo = getWeatherCodeText(weatherData.weather_code);
+
+  currentTempEl.textContent = `${Math.round(weatherData.temperature_2m)}°C`;
+  currentConditionEl.textContent = `${weatherInfo.icon} ${weatherInfo.text}`;
+  feelsLikeEl.textContent = `${Math.round(weatherData.apparent_temperature)}°C`;
+  windSpeedEl.textContent = `${Math.round(weatherData.windspeed_10m)} km/h`;
+  precipitationEl.textContent = `${weatherData.precipitation} mm`;
+}
+
 async function fetchWeather(city) {
-  statusEl.textContent = "Wetter wird geladen...";
+  currentStatusMode = "loading";
+  updateStatusText();
   setActiveChip(city);
 
   try {
@@ -80,7 +252,10 @@ async function fetchWeather(city) {
     const geoData = await geoResponse.json();
 
     if (!geoData.results?.length) {
-      throw new Error("Ort nicht gefunden. Bitte versuche einen anderen Namen.");
+      currentErrorMessage = translations[currentLang].notFound;
+      currentStatusMode = "error";
+      updateStatusText();
+      return;
     }
 
     const { name, latitude, longitude, country } = geoData.results[0];
@@ -92,20 +267,20 @@ async function fetchWeather(city) {
 
     const current = weatherData.current;
     const daily = weatherData.daily;
-    const weatherInfo = getWeatherCodeText(current.weather_code);
 
     cityNameEl.textContent = `${name}, ${country}`;
     currentDateEl.textContent = formatDate(new Date());
-    currentTempEl.textContent = `${Math.round(current.temperature_2m)}°C`;
-    currentConditionEl.textContent = `${weatherInfo.icon} ${weatherInfo.text}`;
-    feelsLikeEl.textContent = `${Math.round(current.apparent_temperature)}°C`;
-    windSpeedEl.textContent = `${Math.round(current.windspeed_10m)} km/h`;
-    precipitationEl.textContent = `${current.precipitation} mm`;
-
+    currentWeatherCode = current;
+    currentDailyData = daily;
+    renderCurrentWeather(current);
     renderForecast(daily);
-    statusEl.textContent = "Wetterdaten erfolgreich geladen.";
+
+    currentStatusMode = "loaded";
+    updateStatusText();
   } catch (error) {
-    statusEl.textContent = error.message || "Beim Laden ist ein Fehler aufgetreten.";
+    currentErrorMessage = error.message || "Beim Laden ist ein Fehler aufgetreten.";
+    currentStatusMode = "error";
+    updateStatusText();
     forecastEl.innerHTML = "";
     cityNameEl.textContent = "Keine Daten";
     currentTempEl.textContent = "--";
@@ -127,7 +302,7 @@ function renderForecast(daily) {
       <h3>${formatDate(day)}</h3>
       <div class="forecast-temp">${Math.round(daily.temperature_2m_max[index])}° / ${Math.round(daily.temperature_2m_min[index])}°</div>
       <p>${weatherInfo.icon} ${weatherInfo.text}</p>
-      <p>Niederschlag: ${daily.precipitation_sum[index]} mm</p>
+      <p>${translations[currentLang].rain}: ${daily.precipitation_sum[index]} mm</p>
     `;
     forecastEl.appendChild(card);
   });
@@ -138,7 +313,9 @@ form.addEventListener("submit", (event) => {
   const city = cityInput.value.trim();
 
   if (!city) {
-    statusEl.textContent = "Bitte gib eine Stadt ein.";
+    currentStatusMode = "error";
+    currentErrorMessage = translations[currentLang].empty;
+    updateStatusText();
     return;
   }
 
@@ -155,7 +332,7 @@ cityChips.forEach((chip) => {
 
 if (langBtn) {
   langBtn.addEventListener("click", () => {
-    isArabic = !isArabic;
+    currentLang = currentLang === "de" ? "ar" : "de";
     updateLanguage();
   });
 }
