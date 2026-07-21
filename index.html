@@ -9,10 +9,17 @@
   <body>
     <div class="app-shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">Live-Wetter</p>
-          <h1>Wetter in deiner Stadt</h1>
-          <p class="subtitle">Aktuelle Bedingungen und 7-Tage-Prognose auf Deutsch.</p>
+        <div class="hero-title">
+          <div class="flag-badge" aria-label="Deutschland Flagge" title="Deutschland">
+            <span class="flag-band black"></span>
+            <span class="flag-band red"></span>
+            <span class="flag-band gold"></span>
+          </div>
+          <div>
+            <p class="eyebrow">Live-Wetter</p>
+            <h1>Wetter in deiner Stadt</h1>
+            <p class="subtitle">Aktuelle Bedingungen und 7-Tage-Prognose auf Deutsch.</p>
+          </div>
         </div>
 
         <form id="search-form" class="search-box">
@@ -20,6 +27,13 @@
           <button type="submit">Suchen</button>
         </form>
       </header>
+
+      <section class="city-chips" aria-label="Beliebte Städte">
+        <button type="button" class="city-chip" data-city="München">München</button>
+        <button type="button" class="city-chip" data-city="Berlin">Berlin</button>
+        <button type="button" class="city-chip" data-city="Köln">Köln</button>
+        <button type="button" class="city-chip" data-city="Frankfurt">Frankfurt</button>
+      </section>
 
       <main>
         <section id="status" class="status" aria-live="polite"></section>

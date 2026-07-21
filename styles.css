@@ -36,6 +36,31 @@ body {
   margin-bottom: 24px;
 }
 
+.hero-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.flag-badge {
+  display: flex;
+  flex-direction: column;
+  width: 54px;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.flag-band {
+  flex: 1;
+}
+
+.flag-band.black { background: #000; }
+.flag-band.red { background: #dd0000; }
+.flag-band.gold { background: #ffce00; }
+
 .eyebrow {
   margin: 0 0 6px;
   color: var(--accent);
@@ -86,6 +111,30 @@ h1 {
   min-height: 28px;
   margin-bottom: 16px;
   color: var(--muted);
+}
+
+.city-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.city-chip {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text);
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.city-chip:hover,
+.city-chip.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: #042033;
+  transform: translateY(-1px);
 }
 
 .current-card,

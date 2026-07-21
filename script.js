@@ -9,8 +9,9 @@ const feelsLikeEl = document.getElementById("feels-like");
 const windSpeedEl = document.getElementById("wind-speed");
 const precipitationEl = document.getElementById("precipitation");
 const forecastEl = document.getElementById("forecast");
+const cityChips = document.querySelectorAll(".city-chip");
 
-const defaultCity = "Berlin";
+const defaultCity = "München";
 
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("de-DE", {
@@ -45,8 +46,18 @@ function getWeatherCodeText(code) {
   return map[code] || { text: "Wetterlage", icon: "🌈" };
 }
 
+function setActiveChip(city) {
+  const normalizedCity = city.toLowerCase();
+
+  cityChips.forEach((chip) => {
+    const chipCity = chip.dataset.city.toLowerCase();
+    chip.classList.toggle("active", chipCity === normalizedCity);
+  });
+}
+
 async function fetchWeather(city) {
   statusEl.textContent = "Wetter wird geladen...";
+  setActiveChip(city);
 
   try {
     const geoResponse = await fetch(
@@ -118,6 +129,14 @@ form.addEventListener("submit", (event) => {
   }
 
   fetchWeather(city);
+});
+
+cityChips.forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const city = chip.dataset.city;
+    cityInput.value = city;
+    fetchWeather(city);
+  });
 });
 
 window.addEventListener("DOMContentLoaded", () => {
