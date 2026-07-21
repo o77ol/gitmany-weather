@@ -10,8 +10,22 @@ const windSpeedEl = document.getElementById("wind-speed");
 const precipitationEl = document.getElementById("precipitation");
 const forecastEl = document.getElementById("forecast");
 const cityChips = document.querySelectorAll(".city-chip");
+const langBtn = document.getElementById("lang-btn");
+const eyebrowEl = document.querySelector(".eyebrow");
+const titleEl = document.querySelector("h1");
 
 const defaultCity = "München";
+let isArabic = false;
+
+function updateLanguage() {
+  if (eyebrowEl) {
+    eyebrowEl.textContent = isArabic ? "الطقس المباشر" : "LIVE-WETTER";
+  }
+
+  if (titleEl) {
+    titleEl.textContent = isArabic ? "طقس مدينتك" : "Wetter in deiner Stadt";
+  }
+}
 
 function formatDate(dateString) {
   return new Date(dateString).toLocaleDateString("de-DE", {
@@ -139,7 +153,15 @@ cityChips.forEach((chip) => {
   });
 });
 
+if (langBtn) {
+  langBtn.addEventListener("click", () => {
+    isArabic = !isArabic;
+    updateLanguage();
+  });
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   cityInput.value = defaultCity;
+  updateLanguage();
   fetchWeather(defaultCity);
 });
